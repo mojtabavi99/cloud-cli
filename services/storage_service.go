@@ -2,15 +2,27 @@ package services
 
 import (
 	"cloud-cli/models"
+	"cloud-cli/repository"
 	"errors"
 	"fmt"
 )
 
-// StorageService نماینده سرویس ذخیره‌سازی است
-type StorageService struct{}
+type StorageService struct {
+	Repo *repository.ResourceRepository
+}
+
+func NewStorageService(repo *repository.ResourceRepository) *StorageService {
+	return &StorageService{
+		Repo: repo,
+	}
+}
 
 // Start برای Storage معمولاً به Mount شدن اشاره دارد
-func (s *StorageService) Start(resource *models.Resource) error {
+func (s *StorageService) Start(id int) error {
+	resource, err := s.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	if resource.Status == models.Running {
 		return errors.New("Storage is already mounted")
 	}
@@ -20,7 +32,11 @@ func (s *StorageService) Start(resource *models.Resource) error {
 }
 
 // Stop برای Storage به Unmount شدن اشاره دارد
-func (s *StorageService) Stop(resource *models.Resource) error {
+func (s *StorageService) Stop(id int) error {
+	resource, err := s.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	if resource.Status != models.Running {
 		return errors.New("Storage is not mounted")
 	}
@@ -30,7 +46,11 @@ func (s *StorageService) Stop(resource *models.Resource) error {
 }
 
 // Terminate حذف کامل Storage
-func (s *StorageService) Terminate(resource *models.Resource) error {
+func (s *StorageService) Terminate(id int) error {
+	resource, err := s.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	if resource.Status == models.Terminated {
 		return errors.New("Storage is already terminated")
 	}
@@ -40,7 +60,11 @@ func (s *StorageService) Terminate(resource *models.Resource) error {
 }
 
 // Restart در Storage می‌تواند Unmount و Mount مجدد باشد
-func (s *StorageService) Restart(resource *models.Resource) error {
+func (s *StorageService) Restart(id int) error {
+	resource, err := s.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	if resource.Status == models.Terminated {
 		return errors.New("cannot restart a terminated Storage")
 	}
@@ -56,6 +80,11 @@ func (s *StorageService) Restart(resource *models.Resource) error {
 }
 
 // StatusCheck وضعیت فعلی Storage را نمایش می‌دهد
-func (s *StorageService) StatusCheck(resource *models.Resource) {
+func (s *StorageService) StatusCheck(id int) error {
+	resource, err := s.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	fmt.Printf("Storage %d current status: %s\n", resource.ID, resource.Status)
+	return nil
 }

@@ -2,13 +2,26 @@ package services
 
 import (
 	"cloud-cli/models"
+	"cloud-cli/repository"
 	"errors"
 	"fmt"
 )
 
-type DatabaseService struct{}
+type DatabaseService struct {
+	Repo *repository.ResourceRepository
+}
 
-func (d *DatabaseService) Start(resource *models.Resource) error {
+func NewDatabaseService(repo *repository.ResourceRepository) *DatabaseService {
+	return &DatabaseService{
+		Repo: repo,
+	}
+}
+
+func (d *DatabaseService) Start(id int) error {
+	resource, err := d.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	if resource.Status == models.Running {
 		return errors.New("Database is already running")
 	}
@@ -17,7 +30,11 @@ func (d *DatabaseService) Start(resource *models.Resource) error {
 	return nil
 }
 
-func (d *DatabaseService) Stop(resource *models.Resource) error {
+func (d *DatabaseService) Stop(id int) error {
+	resource, err := d.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	if resource.Status != models.Running {
 		return errors.New("Database is not running")
 	}
@@ -26,7 +43,11 @@ func (d *DatabaseService) Stop(resource *models.Resource) error {
 	return nil
 }
 
-func (d *DatabaseService) Terminate(resource *models.Resource) error {
+func (d *DatabaseService) Terminate(id int) error {
+	resource, err := d.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	if resource.Status == models.Terminated {
 		return errors.New("Database is already terminated")
 	}
@@ -35,7 +56,11 @@ func (d *DatabaseService) Terminate(resource *models.Resource) error {
 	return nil
 }
 
-func (d *DatabaseService) Restart(resource *models.Resource) error {
+func (d *DatabaseService) Restart(id int) error {
+	resource, err := d.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	if resource.Status == models.Terminated {
 		return errors.New("cannot restart a terminated Database")
 	}
@@ -50,6 +75,11 @@ func (d *DatabaseService) Restart(resource *models.Resource) error {
 	return nil
 }
 
-func (d *DatabaseService) StatusCheck(resource *models.Resource) {
+func (d *DatabaseService) StatusCheck(id int) error {
+	resource, err := d.Repo.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
 	fmt.Printf("Database %d current status: %s\n", resource.ID, resource.Status)
+	return nil
 }
